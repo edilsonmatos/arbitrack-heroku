@@ -28,18 +28,11 @@ O sistema de alertas sonoros foi implementado para notificar quando o spread atu
 
 ## Níveis de Alerta
 
-### 🟡 Alerta de Aviso (70%)
-- **Threshold**: 70% do spread máximo das últimas 24h
-- **Cor**: Amarelo
-- **Notificação**: Toast de aviso
-- **Som**: Alerta sonoro
-- **Indicador**: Sino amarelo
-
 ### 🟢 Alerta Crítico (90%)
 - **Threshold**: 90% do spread máximo das últimas 24h
 - **Cor**: Verde
 - **Notificação**: Toast de sucesso com mensagem "OPORTUNIDADE EXCELENTE!"
-- **Som**: Alerta sonoro
+- **Som**: Alerta sonoro (toca 2 vezes)
 - **Indicador**: Sino verde pulsante
 
 ## Como Usar
@@ -48,7 +41,7 @@ O sistema de alertas sonoros foi implementado para notificar quando o spread atu
 1. Na tabela de oportunidades de arbitragem
 2. Localize o ícone de volume ao lado do spread máximo
 3. Clique para ativar (ícone ficará azul)
-4. Os alertas serão disparados quando o spread atingir 70% e 90% do máximo
+4. Os alertas serão disparados quando o spread atingir 90% do máximo
 
 ### Gerenciar Alertas Globais
 1. No dashboard, vá para a seção "Alertas Sonoros"
@@ -69,7 +62,6 @@ O sistema de alertas sonoros foi implementado para notificar quando o spread atu
 - Configurações mantidas entre sessões
 
 ### Critérios de Alerta
-- **Aviso**: Spread atual ≥ 70% do spread máximo das últimas 24h
 - **Crítico**: Spread atual ≥ 90% do spread máximo das últimas 24h
 - Alerta ativo para o símbolo específico
 - Cooldown de 30 segundos respeitado
@@ -95,7 +87,6 @@ audioRef.current.volume = 0.7; // 0.0 a 1.0
 Para alterar os percentuais, modifique:
 
 ```typescript
-const warningThreshold = maxSpread24h * 0.70; // 70% para aviso
 const criticalThreshold = maxSpread24h * 0.90; // 90% para crítico
 ```
 

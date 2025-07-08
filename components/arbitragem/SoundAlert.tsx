@@ -23,14 +23,14 @@ export default function SoundAlert({
 }: SoundAlertProps) {
   const [isAlerting, setIsAlerting] = useState(false);
   const [lastAlertTime, setLastAlertTime] = useState<number>(0);
-  const [alertLevel, setAlertLevel] = useState<'none' | 'warning' | 'critical'>('none');
+  const [alertLevel, setAlertLevel] = useState<'none' | 'critical'>('none');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const alertCooldownRef = useRef<number>(30000); // 30 segundos entre alertas
   const { showWarning, showSuccess } = useToastContext();
 
   // Adicionar um ref para contar as repetições do alerta
   const playCountRef = useRef(0);
-  const maxPlays = 3;
+  const maxPlays = 2;
 
   // Criar elemento de áudio para o alerta
   useEffect(() => {
@@ -50,7 +50,7 @@ export default function SoundAlert({
         console.error('Detalhes do erro:', e);
       });
       
-      // Atualizar o evento ended para tocar no máximo 3 vezes
+      // Atualizar o evento ended para tocar no máximo 2 vezes
       const handleEnded = () => {
         playCountRef.current += 1;
         if (playCountRef.current < maxPlays) {
@@ -80,17 +80,14 @@ export default function SoundAlert({
       return;
     }
 
-    const warningThreshold = maxSpread24h * 0.70; // 70% do spread máximo
     const criticalThreshold = maxSpread24h * 0.90; // 90% do spread máximo
     const now = Date.now();
     const percentage = (currentSpread / maxSpread24h) * 100;
 
     // Determinar o nível de alerta
-    let newAlertLevel: 'none' | 'warning' | 'critical' = 'none';
+    let newAlertLevel: 'none' | 'critical' = 'none';
     if (currentSpread >= criticalThreshold) {
       newAlertLevel = 'critical';
-    } else if (currentSpread >= warningThreshold) {
-      newAlertLevel = 'warning';
     }
 
     setAlertLevel(newAlertLevel);
@@ -105,11 +102,6 @@ export default function SoundAlert({
         showSuccess(
           `🚨 ALERTA CRÍTICO - ${symbol}`,
           `Spread atual: ${currentSpread.toFixed(2)}% (${percentage.toFixed(0)}% do máximo) - OPORTUNIDADE EXCELENTE!`
-        );
-      } else {
-        showWarning(
-          `⚠️ Alerta de Spread - ${symbol}`,
-          `Spread atual: ${currentSpread.toFixed(2)}% (${percentage.toFixed(0)}% do máximo)`
         );
       }
 
@@ -183,7 +175,6 @@ export default function SoundAlert({
     if (!maxSpread24h || maxSpread24h <= 0) return 'no-data';
     
     if (alertLevel === 'critical') return 'critical';
-    if (alertLevel === 'warning') return 'warning';
     return 'waiting';
   };
 
@@ -192,14 +183,12 @@ export default function SoundAlert({
   // Função para obter a cor do alerta baseada no nível
   const getAlertColor = () => {
     if (alertLevel === 'critical') return 'text-green-400';
-    if (alertLevel === 'warning') return 'text-yellow-400';
     return 'text-gray-400';
   };
 
   // Função para obter a cor do sino baseada no nível
   const getBellColor = () => {
     if (alertLevel === 'critical') return 'text-green-400 animate-pulse';
-    if (alertLevel === 'warning') return 'text-yellow-400';
     return 'text-gray-500';
   };
 
@@ -248,7 +237,7 @@ export default function SoundAlert({
         <div className={`absolute inset-0 border-2 rounded animate-pulse pointer-events-none ${
           alertLevel === 'critical' 
             ? 'bg-green-500/20 border-green-400' 
-            : 'bg-yellow-500/20 border-yellow-400'
+            : 'bg-gray-500/20 border-gray-400'
         }`} />
       )}
     </div>
