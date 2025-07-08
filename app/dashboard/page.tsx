@@ -6,6 +6,7 @@ import ArbitrageHistoryChart from '@/components/dashboard/arbitrage-history-char
 import TotalBalanceCard from '@/components/dashboard/total-balance-card';
 import StaticMetrics from '@/components/dashboard/static-metrics';
 import EnhancedPercentageGauge from '@/components/dashboard/enhanced-percentage-gauge';
+import SoundAlertControls from '@/components/arbitragem/SoundAlertControls';
 import { LayoutDashboard, Repeat, Wallet, History, Settings, AlertCircle, TrendingUp } from 'lucide-react';
 
 // Ícones Lucide com estilo
@@ -98,6 +99,11 @@ export default function DashboardPage() {
               <EnhancedPercentageGauge />
             </div>
           </div>
+        </section>
+
+        {/* Seção de Alertas Sonoros */}
+        <section className="mb-8">
+          <SoundAlertControls />
         </section>
       </main>
     </div>

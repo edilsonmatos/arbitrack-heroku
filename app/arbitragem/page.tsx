@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import ArbitrageTable from '@/components/arbitragem/arbitrage-table';
 import Sidebar from '@/components/dashboard/sidebar';
 import { LayoutDashboard, Repeat, Wallet, History, Settings, TrendingUp } from 'lucide-react';

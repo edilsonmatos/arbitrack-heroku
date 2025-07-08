@@ -155,7 +155,7 @@ const OpportunityRow = React.memo(({ opportunity, livePrices, formatPrice, getSp
               {new Decimal(spreadValue).toFixed(2)}%
             </td>
             <td className="py-4 px-6 whitespace-nowrap text-sm">
-              <MaxSpreadCell symbol={opportunity.symbol} />
+              <MaxSpreadCell symbol={opportunity.symbol} currentSpread={spreadValue} />
             </td>
             <td className="py-4 px-6 whitespace-nowrap text-center text-sm">
               <button 

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Som</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background: #00d4aa;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #00b894;
+        }
+        .error {
+            color: #ff6b6b;
+        }
+        .success {
+            color: #51cf66;
+        }
+        .info {
+            color: #74c0fc;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔊 Teste de Som - Alerta MP3</h1>
+    
+    <div class="test-section">
+        <h2>Teste 1: Verificar se o arquivo existe</h2>
+        <button onclick="testFileExists()">Verificar arquivo</button>
+        <div id="fileStatus"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Teste 2: Tocar som MP3</h2>
+        <button onclick="playSound()">Tocar Alerta MP3</button>
+        <div id="playStatus"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Teste 3: Som Base64 (Fallback)</h2>
+        <button onclick="playBase64Sound()">Tocar Som Base64</button>
+        <div id="base64Status"></div>
+    </div>
+
+    <script>
+        const soundFile = '/sounds/alerta.mp3';
+        let audio = null;
+
+        function testFileExists() {
+            const statusDiv = document.getElementById('fileStatus');
+            statusDiv.innerHTML = '<span class="info">Verificando...</span>';
+            
+            fetch(soundFile)
+                .then(response => {
+                    if (response.ok) {
+                        statusDiv.innerHTML = '<span class="success">✅ Arquivo encontrado! Status: ' + response.status + '</span>';
+                    } else {
+                        statusDiv.innerHTML = '<span class="error">❌ Arquivo não encontrado. Status: ' + response.status + '</span>';
+                    }
+                })
+                .catch(error => {
+                    statusDiv.innerHTML = '<span class="error">❌ Erro ao verificar arquivo: ' + error.message + '</span>';
+                });
+        }
+
+        function playSound() {
+            const statusDiv = document.getElementById('playStatus');
+            statusDiv.innerHTML = '<span class="info">Tocando...</span>';
+            
+            if (!audio) {
+                audio = new Audio(soundFile);
+                audio.volume = 0.7;
+                
+                audio.addEventListener('canplay', () => {
+                    statusDiv.innerHTML = '<span class="success">✅ Áudio carregado com sucesso!</span>';
+                });
+                
+                audio.addEventListener('error', (e) => {
+                    statusDiv.innerHTML = '<span class="error">❌ Erro ao carregar áudio: ' + e.message + '</span>';
+                });
+                
+                audio.addEventListener('ended', () => {
+                    statusDiv.innerHTML = '<span class="success">✅ Som reproduzido com sucesso!</span>';
+                });
+            }
+            
+            audio.currentTime = 0;
+            audio.play().catch(error => {
+                statusDiv.innerHTML = '<span class="error">❌ Erro ao tocar: ' + error.message + '</span>';
+            });
+        }
+
+        function playBase64Sound() {
+            const statusDiv = document.getElementById('base64Status');
+            statusDiv.innerHTML = '<span class="info">Tocando som base64...</span>';
+            
+            const base64Audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+            base64Audio.volume = 0.7;
+            
+            base64Audio.addEventListener('ended', () => {
+                statusDiv.innerHTML = '<span class="success">✅ Som base64 reproduzido!</span>';
+            });
+            
+            base64Audio.play().catch(error => {
+                statusDiv.innerHTML = '<span class="error">❌ Erro no som base64: ' + error.message + '</span>';
+            });
+        }
+
+        // Teste automático ao carregar a página
+        window.addEventListener('load', () => {
+            console.log('🎵 Página de teste carregada');
+            console.log('🎵 Arquivo a testar:', soundFile);
+        });
+    </script>
+</body>
+</html> 

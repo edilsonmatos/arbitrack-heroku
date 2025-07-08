@@ -11,9 +11,12 @@ import {
 } from '@/components/ui/dialog';
 import SpreadHistoryChart from './SpreadHistoryChart';
 import PriceComparisonChart from './PriceComparisonChart';
+import SoundAlert from './SoundAlert';
+import { useSoundAlerts } from './useSoundAlerts';
 
 interface MaxSpreadCellProps {
   symbol: string;
+  currentSpread?: number;
 }
 
 interface SpreadStats {
@@ -25,11 +28,12 @@ interface SpreadStats {
 const cache = new Map<string, { data: SpreadStats; timestamp: number }>();
 const CACHE_DURATION_MS = 5 * 60 * 1000; // 5 minutos
 
-export default function MaxSpreadCell({ symbol }: MaxSpreadCellProps) {
+export default function MaxSpreadCell({ symbol, currentSpread = 0 }: MaxSpreadCellProps) {
   const [stats, setStats] = useState<SpreadStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [chartType, setChartType] = useState<'spread' | 'comparison'>('spread');
+  const { isAlertEnabled, toggleAlert, addSymbol } = useSoundAlerts();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -74,6 +78,13 @@ export default function MaxSpreadCell({ symbol }: MaxSpreadCellProps) {
     }
   }, [isModalOpen]);
 
+  // Adicionar símbolo à configuração de alertas quando os dados são carregados
+  useEffect(() => {
+    if (stats && stats.spMax !== null) {
+      addSymbol(symbol);
+    }
+  }, [stats, symbol, addSymbol]);
+
   const getSpreadColor = (spread: number) => {
     if (spread > 2) return 'text-green-400';
     if (spread > 1) return 'text-yellow-400';
@@ -97,65 +108,75 @@ export default function MaxSpreadCell({ symbol }: MaxSpreadCellProps) {
         <span className="text-xs text-gray-500">({stats.crosses} registros)</span>
       </div>
       
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogTrigger asChild>
-          <button className="ml-2 p-1 text-gray-400 hover:text-white transition-colors">
-            <ChartIcon className="h-5 w-5" />
-          </button>
-        </DialogTrigger>
-        <DialogContent className="max-w-4xl bg-dark-card border-gray-700 text-white">
-          <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle>Análise de {symbol}</DialogTitle>
-              <div className="flex bg-gray-800 rounded-lg p-1">
-                <button
-                  onClick={() => setChartType('spread')}
-                  className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                    chartType === 'spread'
-                      ? 'bg-custom-cyan text-black font-semibold'
-                      : 'text-gray-300 hover:text-white'
-                  }`}
-                >
-                  Spread 24h
-                </button>
-                <button
-                  onClick={() => setChartType('comparison')}
-                  className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                    chartType === 'comparison'
-                      ? 'bg-custom-cyan text-black font-semibold'
-                      : 'text-gray-300 hover:text-white'
-                  }`}
-                >
-                  Spot vs Futures
-                </button>
+      <div className="flex items-center gap-2">
+        <SoundAlert
+          symbol={symbol}
+          currentSpread={currentSpread}
+          maxSpread24h={stats.spMax}
+          isEnabled={isAlertEnabled(symbol)}
+          onToggle={(enabled) => toggleAlert(symbol, enabled)}
+        />
+        
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogTrigger asChild>
+            <button className="p-1 text-gray-400 hover:text-white transition-colors">
+              <ChartIcon className="h-5 w-5" />
+            </button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl bg-dark-card border-gray-700 text-white">
+            <DialogHeader>
+              <div className="flex items-center justify-between">
+                <DialogTitle>Análise de {symbol}</DialogTitle>
+                <div className="flex bg-gray-800 rounded-lg p-1">
+                  <button
+                    onClick={() => setChartType('spread')}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      chartType === 'spread'
+                        ? 'bg-custom-cyan text-black font-semibold'
+                        : 'text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    Spread 24h
+                  </button>
+                  <button
+                    onClick={() => setChartType('comparison')}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      chartType === 'comparison'
+                        ? 'bg-custom-cyan text-black font-semibold'
+                        : 'text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    Spot vs Futures
+                  </button>
+                </div>
               </div>
+            </DialogHeader>
+            
+            <div className="mt-4">
+              {/* Renderiza o gráfico apenas se o modal estiver aberto */}
+              {isModalOpen && (
+                <>
+                  {chartType === 'spread' ? (
+                    <div>
+                      <div className="mb-3 text-sm text-gray-400">
+                        Histórico de spread máximo das últimas 24 horas
+                      </div>
+                      <SpreadHistoryChart symbol={symbol} />
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="mb-3 text-sm text-gray-400">
+                        Comparação de preços spot vs futures (pontos a cada 30 min)
+                      </div>
+                      <PriceComparisonChart symbol={symbol} />
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-          </DialogHeader>
-          
-          <div className="mt-4">
-            {/* Renderiza o gráfico apenas se o modal estiver aberto */}
-            {isModalOpen && (
-              <>
-                {chartType === 'spread' ? (
-                  <div>
-                    <div className="mb-3 text-sm text-gray-400">
-                      Histórico de spread máximo das últimas 24 horas
-                    </div>
-                    <SpreadHistoryChart symbol={symbol} />
-                  </div>
-                ) : (
-                  <div>
-                    <div className="mb-3 text-sm text-gray-400">
-                      Comparação de preços spot vs futures (pontos a cada 30 min)
-                    </div>
-                    <PriceComparisonChart symbol={symbol} />
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }
