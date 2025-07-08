@@ -841,9 +841,16 @@ export default function ArbitrageTable({ isBigArb = false }: ArbitrageTableProps
     const futuresPnL = (position.futuresEntry - currentFuturesPrice) * position.quantity;
     const totalPnL = spotPnL + futuresPnL;
 
-
-
-    return { totalPnL, pnlPercent, currentSpotPrice, currentFuturesPrice };
+    return { 
+      totalPnL, 
+      pnlPercent, 
+      currentSpotPrice, 
+      currentFuturesPrice,
+      spotPnL,
+      futuresPnL,
+      pnlSpot,
+      pnlFutures
+    };
   };
 
 
@@ -1003,7 +1010,7 @@ export default function ArbitrageTable({ isBigArb = false }: ArbitrageTableProps
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             {positions.map((position) => {
-              const { totalPnL, pnlPercent, currentSpotPrice, currentFuturesPrice } = calculatePnL(position);
+              const { totalPnL, pnlPercent, currentSpotPrice, currentFuturesPrice, spotPnL, futuresPnL, pnlSpot, pnlFutures } = calculatePnL(position);
               const entrySpread = ((position.futuresEntry - position.spotEntry) / position.spotEntry) * 100;
               const currentSpread = ((currentFuturesPrice - currentSpotPrice) / currentSpotPrice) * 100;
 
@@ -1051,11 +1058,17 @@ export default function ArbitrageTable({ isBigArb = false }: ArbitrageTableProps
                       <p className="text-gray-400 mb-1">SPOT ({getExchangeDisplayName(position.spotExchange)})</p>
                       <p className="text-white font-medium">Entrada: {formatPrice(position.spotEntry)}</p>
                       <p className="text-gray-300">Atual: {formatPrice(currentSpotPrice)}</p>
+                      <p className={`text-xs font-medium ${spotPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        P&L: {spotPnL >= 0 ? '+' : ''}${spotPnL.toFixed(2)} ({pnlSpot >= 0 ? '+' : ''}{pnlSpot.toFixed(2)}%)
+                      </p>
                     </div>
                     <div className="bg-gray-700/50 p-2 rounded">
                       <p className="text-gray-400 mb-1">FUTURES ({getExchangeDisplayName(position.futuresExchange)})</p>
                       <p className="text-white font-medium">Entrada: {formatPrice(position.futuresEntry)}</p>
                       <p className="text-gray-300">Atual: {formatPrice(currentFuturesPrice)}</p>
+                      <p className={`text-xs font-medium ${futuresPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        P&L: {futuresPnL >= 0 ? '+' : ''}${futuresPnL.toFixed(2)} ({pnlFutures >= 0 ? '+' : ''}{pnlFutures.toFixed(2)}%)
+                      </p>
                     </div>
                   </div>
 
