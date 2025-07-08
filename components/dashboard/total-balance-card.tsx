@@ -57,7 +57,7 @@ export default function TotalBalanceCard() {
   // Mapa completo de todas as exchanges e seus endpoints
   const exchangeEndpointMap: { [key: string]: ExchangeEndpoint } = {
     'gateio': { name: 'Gate.io', key: 'gateio', endpoints: ['/api/gateio/wallet-balance', '/api/gateio-futures'] },
-    'mexc': { name: 'MEXC', key: 'mexc', endpoints: ['/api/mexc/wallet-balance', '/api/mexc-futures'] },
+    'mexc': { name: 'MEXC', key: 'mexc', endpoints: ['/api/mexc/wallet-balance'] },
     'binance': { name: 'Binance', key: 'binance', endpoints: ['/api/binance/wallet-balance'] },
     'bybit': { name: 'Bybit', key: 'bybit', endpoints: ['/api/bybit/wallet-balance'] },
     'bitget': { name: 'Bitget', key: 'bitget', endpoints: ['/api/bitget/wallet-balance'] },

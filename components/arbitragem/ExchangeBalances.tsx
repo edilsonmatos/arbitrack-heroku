@@ -35,13 +35,13 @@ export default function ExchangeBalances() {
     
     try {
       // Buscar saldos em paralelo
-      const [gateioResponse, mexcFuturesResponse] = await Promise.all([
+      const [gateioResponse, mexcResponse] = await Promise.all([
         fetch('/api/trading/balance?exchange=gateio'),
-        fetch('/api/mexc-futures')
+        fetch('/api/mexc/wallet-balance')
       ]);
       
       const gateioData = await gateioResponse.json();
-      const mexcData = await mexcFuturesResponse.json();
+      const mexcData = await mexcResponse.json();
       
       // Montar array de exchanges no formato esperado
       const exchangesData = [
