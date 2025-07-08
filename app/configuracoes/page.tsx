@@ -10,6 +10,7 @@ interface ApiConfig {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  source?: 'database' | 'environment';
 }
 
 interface ExchangeForm {
@@ -388,6 +389,11 @@ export default function ConfiguracoesPage() {
                       }`}>
                         {config.isActive ? 'Ativa' : 'Inativa'}
                       </span>
+                      {config.source === 'environment' && (
+                        <span className="px-2 py-1 rounded-full text-xs bg-blue-600 text-white">
+                          Variável de Ambiente
+                        </span>
+                      )}
                     </div>
                     <div className="text-sm text-gray-400">
                       <p>Configurada em: {new Date(config.createdAt).toLocaleDateString('pt-BR')}</p>
@@ -396,14 +402,20 @@ export default function ConfiguracoesPage() {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleDeleteConfig(config.exchange)}
-                      disabled={isLoading}
-                      className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-md transition-colors disabled:opacity-50"
-                      title="Remover configuração"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    {config.source === 'environment' ? (
+                      <span className="text-xs text-gray-500 px-2 py-1">
+                        Não pode ser removida
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => handleDeleteConfig(config.exchange)}
+                        disabled={isLoading}
+                        className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-md transition-colors disabled:opacity-50"
+                        title="Remover configuração"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}

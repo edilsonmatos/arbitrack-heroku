@@ -7,21 +7,49 @@ export const dynamic = 'force-dynamic';
 // GET - Buscar configurações das exchanges
 export async function GET(req: NextRequest) {
   try {
-    if (!prisma) {
-      console.warn('Aviso: Banco de dados não disponível');
-      return NextResponse.json([]);
+    let configs: any[] = [];
+    
+    if (prisma) {
+      try {
+        // Tentar buscar do banco de dados
+        configs = await prisma.apiConfiguration.findMany({
+          select: {
+            id: true,
+            exchange: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true,
+            // Não retornamos as chaves por segurança
+          }
+        });
+      } catch (dbError: any) {
+        console.warn('Banco de dados não disponível, usando variáveis de ambiente:', dbError.message);
+      }
     }
 
-    const configs = await prisma.apiConfiguration.findMany({
-      select: {
-        id: true,
-        exchange: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-        // Não retornamos as chaves por segurança
+    // Se não há configurações no banco, verificar variáveis de ambiente
+    if (configs.length === 0) {
+      const envConfigs: any[] = [];
+      const exchanges = ['gateio', 'mexc', 'binance', 'bybit', 'bitget'];
+      
+      for (const exchange of exchanges) {
+        const apiKey = process.env[`${exchange.toUpperCase()}_API_KEY`];
+        const apiSecret = process.env[`${exchange.toUpperCase()}_API_SECRET`];
+        
+        if (apiKey && apiSecret) {
+          envConfigs.push({
+            id: `env-${exchange}`,
+            exchange: exchange,
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            source: 'environment'
+          });
+        }
       }
-    });
+      
+      configs = envConfigs;
+    }
 
     return NextResponse.json(configs);
   } catch (error) {
