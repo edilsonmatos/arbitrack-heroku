@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-O sistema de alertas sonoros foi implementado para notificar quando o spread atual de uma oportunidade de arbitragem representa 95% ou mais do spread máximo das últimas 24 horas. Isso permite identificar momentos ótimos para execução de operações.
+O sistema de alertas sonoros foi implementado para notificar quando o spread atual de uma oportunidade de arbitragem atinge níveis específicos em relação ao spread máximo das últimas 24 horas. Isso permite identificar momentos ótimos para execução de operações com diferentes níveis de urgência.
 
 ## Funcionalidades
 
@@ -26,13 +26,29 @@ O sistema de alertas sonoros foi implementado para notificar quando o spread atu
 - **Toast**: Notificação visual no canto superior direito
 - **Cooldown**: 30 segundos entre alertas para evitar spam
 
+## Níveis de Alerta
+
+### 🟡 Alerta de Aviso (70%)
+- **Threshold**: 70% do spread máximo das últimas 24h
+- **Cor**: Amarelo
+- **Notificação**: Toast de aviso
+- **Som**: Alerta sonoro
+- **Indicador**: Sino amarelo
+
+### 🟢 Alerta Crítico (90%)
+- **Threshold**: 90% do spread máximo das últimas 24h
+- **Cor**: Verde
+- **Notificação**: Toast de sucesso com mensagem "OPORTUNIDADE EXCELENTE!"
+- **Som**: Alerta sonoro
+- **Indicador**: Sino verde pulsante
+
 ## Como Usar
 
 ### Ativar Alerta para um Símbolo
 1. Na tabela de oportunidades de arbitragem
 2. Localize o ícone de volume ao lado do spread máximo
 3. Clique para ativar (ícone ficará azul)
-4. O alerta será disparado quando o spread atingir 95% do máximo
+4. Os alertas serão disparados quando o spread atingir 70% e 90% do máximo
 
 ### Gerenciar Alertas Globais
 1. No dashboard, vá para a seção "Alertas Sonoros"
@@ -53,7 +69,8 @@ O sistema de alertas sonoros foi implementado para notificar quando o spread atu
 - Configurações mantidas entre sessões
 
 ### Critérios de Alerta
-- Spread atual ≥ 95% do spread máximo das últimas 24h
+- **Aviso**: Spread atual ≥ 70% do spread máximo das últimas 24h
+- **Crítico**: Spread atual ≥ 90% do spread máximo das últimas 24h
 - Alerta ativo para o símbolo específico
 - Cooldown de 30 segundos respeitado
 - Dados históricos suficientes (mínimo 2 registros)
@@ -74,11 +91,12 @@ Ajuste o volume modificando:
 audioRef.current.volume = 0.7; // 0.0 a 1.0
 ```
 
-### Threshold
-Para alterar o percentual de 95%, modifique:
+### Thresholds
+Para alterar os percentuais, modifique:
 
 ```typescript
-const threshold = maxSpread24h * 0.95; // Mude para 0.90 para 90%
+const warningThreshold = maxSpread24h * 0.70; // 70% para aviso
+const criticalThreshold = maxSpread24h * 0.90; // 90% para crítico
 ```
 
 ### Cooldown

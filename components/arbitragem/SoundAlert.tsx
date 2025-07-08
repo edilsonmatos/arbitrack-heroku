@@ -23,9 +23,10 @@ export default function SoundAlert({
 }: SoundAlertProps) {
   const [isAlerting, setIsAlerting] = useState(false);
   const [lastAlertTime, setLastAlertTime] = useState<number>(0);
+  const [alertLevel, setAlertLevel] = useState<'none' | 'warning' | 'critical'>('none');
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const alertCooldownRef = useRef<number>(30000); // 30 segundos entre alertas
-  const { showWarning } = useToastContext();
+  const { showWarning, showSuccess } = useToastContext();
 
   // Adicionar um ref para contar as repetições do alerta
   const playCountRef = useRef(0);
@@ -75,28 +76,47 @@ export default function SoundAlert({
   // Verificar se deve tocar o alerta
   useEffect(() => {
     if (!isEnabled || !maxSpread24h || maxSpread24h <= 0) {
+      setAlertLevel('none');
       return;
     }
 
-    const threshold = maxSpread24h * 0.50; // 50% do spread máximo (TESTE - voltar para 0.95 depois)
+    const warningThreshold = maxSpread24h * 0.70; // 70% do spread máximo
+    const criticalThreshold = maxSpread24h * 0.90; // 90% do spread máximo
     const now = Date.now();
+    const percentage = (currentSpread / maxSpread24h) * 100;
 
-    if (currentSpread >= threshold && 
-        now - lastAlertTime > alertCooldownRef.current) {
-      
+    // Determinar o nível de alerta
+    let newAlertLevel: 'none' | 'warning' | 'critical' = 'none';
+    if (currentSpread >= criticalThreshold) {
+      newAlertLevel = 'critical';
+    } else if (currentSpread >= warningThreshold) {
+      newAlertLevel = 'warning';
+    }
+
+    setAlertLevel(newAlertLevel);
+
+    // Verificar se deve tocar o alerta (apenas se mudou de nível ou se é critical)
+    if (newAlertLevel !== 'none' && now - lastAlertTime > alertCooldownRef.current) {
       setIsAlerting(true);
       setLastAlertTime(now);
 
-      // Mostrar notificação toast
-      showWarning(
-        `Alerta de Spread - ${symbol}`,
-        `Spread atual: ${currentSpread.toFixed(2)}% (${((currentSpread / maxSpread24h) * 100).toFixed(0)}% do máximo)`
-      );
+      // Mostrar notificação toast baseada no nível
+      if (newAlertLevel === 'critical') {
+        showSuccess(
+          `🚨 ALERTA CRÍTICO - ${symbol}`,
+          `Spread atual: ${currentSpread.toFixed(2)}% (${percentage.toFixed(0)}% do máximo) - OPORTUNIDADE EXCELENTE!`
+        );
+      } else {
+        showWarning(
+          `⚠️ Alerta de Spread - ${symbol}`,
+          `Spread atual: ${currentSpread.toFixed(2)}% (${percentage.toFixed(0)}% do máximo)`
+        );
+      }
 
       // Tocar o som
       if (audioRef.current) {
         playCountRef.current = 0; // Resetar contador
-        console.log('🔊 TOCANDO ALERTA para', symbol);
+        console.log(`🔊 TOCANDO ALERTA ${newAlertLevel.toUpperCase()} para`, symbol);
         
         const playPromise = audioRef.current.play();
         
@@ -123,7 +143,7 @@ export default function SoundAlert({
         setIsAlerting(false);
       }, 2000);
     }
-  }, [currentSpread, maxSpread24h, isEnabled, lastAlertTime]);
+  }, [currentSpread, maxSpread24h, isEnabled, lastAlertTime, showWarning, showSuccess]);
 
   const handleToggle = () => {
     onToggle(!isEnabled);
@@ -162,12 +182,26 @@ export default function SoundAlert({
     if (!isEnabled) return 'disabled';
     if (!maxSpread24h || maxSpread24h <= 0) return 'no-data';
     
-    const threshold = maxSpread24h * 0.95;
-    if (currentSpread >= threshold) return 'alerting';
+    if (alertLevel === 'critical') return 'critical';
+    if (alertLevel === 'warning') return 'warning';
     return 'waiting';
   };
 
   const alertStatus = getAlertStatus();
+
+  // Função para obter a cor do alerta baseada no nível
+  const getAlertColor = () => {
+    if (alertLevel === 'critical') return 'text-green-400';
+    if (alertLevel === 'warning') return 'text-yellow-400';
+    return 'text-gray-400';
+  };
+
+  // Função para obter a cor do sino baseada no nível
+  const getBellColor = () => {
+    if (alertLevel === 'critical') return 'text-green-400 animate-pulse';
+    if (alertLevel === 'warning') return 'text-yellow-400';
+    return 'text-gray-500';
+  };
 
   return (
     <div className="flex items-center gap-1">
@@ -201,19 +235,9 @@ export default function SoundAlert({
       {isEnabled && maxSpread24h && maxSpread24h > 0 && (
         <div className="flex items-center gap-1">
           <Bell 
-            className={`h-3 w-3 transition-all duration-200 ${
-              alertStatus === 'alerting' 
-                ? 'text-red-400 animate-pulse' 
-                : alertStatus === 'waiting'
-                ? 'text-yellow-400'
-                : 'text-gray-500'
-            }`} 
+            className={`h-3 w-3 transition-all duration-200 ${getBellColor()}`} 
           />
-          <span className={`text-xs transition-colors ${
-            alertStatus === 'alerting' 
-              ? 'text-red-400 font-bold' 
-              : 'text-gray-400'
-          }`}>
+          <span className={`text-xs transition-colors ${getAlertColor()}`}>
             {((currentSpread / maxSpread24h) * 100).toFixed(0)}%
           </span>
         </div>
@@ -221,7 +245,11 @@ export default function SoundAlert({
       
       {/* Notificação visual quando alertando */}
       {isAlerting && (
-        <div className="absolute inset-0 bg-red-500/20 border-2 border-red-400 rounded animate-pulse pointer-events-none" />
+        <div className={`absolute inset-0 border-2 rounded animate-pulse pointer-events-none ${
+          alertLevel === 'critical' 
+            ? 'bg-green-500/20 border-green-400' 
+            : 'bg-yellow-500/20 border-yellow-400'
+        }`} />
       )}
     </div>
   );
