@@ -28,7 +28,8 @@
     "test:websocket": "ts-node scripts/test-websockets.ts",
     "monitor": "ts-node scripts/monitor-cron.ts",
     "build:monitor": "tsc -p tsconfig.scripts.json",
-    "start:monitor": "node dist/scripts/monitor-cron.js"
+    "start:monitor": "node dist/scripts/monitor-cron.js",
+    "start:all": "concurrently \"npm run start\" \"npm run start:tracker\""
   },
   "engines": {
     "node": "20.x"
