@@ -4,9 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/safe-web-build.js",
-    "build:next": "next build",
-    "start": "next start -H 0.0.0.0 -p ${PORT:-10000}",
+    "build": "next build",
+    "start": "next start -H 0.0.0.0 -p $PORT",
     "lint": "next lint",
     "dev:tracker": "ts-node-dev --respawn --transpile-only --project tsconfig.server.json websocket-server.ts",
     "start:tracker": "node dist/websocket-server.js",
@@ -30,6 +29,9 @@
     "monitor": "ts-node scripts/monitor-cron.ts",
     "build:monitor": "tsc -p tsconfig.scripts.json",
     "start:monitor": "node dist/scripts/monitor-cron.js"
+  },
+  "engines": {
+    "node": "20.x"
   },
   "dependencies": {
     "@babel/core": "^7.27.4",
