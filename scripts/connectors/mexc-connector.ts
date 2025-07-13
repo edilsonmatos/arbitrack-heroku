@@ -1,4 +1,4 @@
-const WS = require('ws');
+import WebSocket from 'ws';
 import { EventEmitter } from 'events';
 
 const MEXC_SPOT_WS_URL = 'wss://wbs.mexc.com/ws';
@@ -52,7 +52,7 @@ export class MexcConnector extends EventEmitter {
         console.log(`[${this.marketIdentifier}] Conectando a ${MEXC_SPOT_WS_URL}`);
         
         try {
-            this.ws = new WS(MEXC_SPOT_WS_URL);
+            this.ws = new WebSocket(MEXC_SPOT_WS_URL);
 
             if (!this.ws) {
                 throw new Error('Falha ao criar WebSocket');

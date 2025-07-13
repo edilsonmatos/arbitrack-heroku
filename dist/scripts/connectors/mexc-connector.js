@@ -1,7 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MexcConnector = void 0;
-const WS = require('ws');
+const ws_1 = __importDefault(require("ws"));
 const events_1 = require("events");
 const MEXC_SPOT_WS_URL = 'wss://wbs.mexc.com/ws';
 class MexcConnector extends events_1.EventEmitter {
@@ -43,7 +46,7 @@ class MexcConnector extends events_1.EventEmitter {
         this.isConnecting = true;
         console.log(`[${this.marketIdentifier}] Conectando a ${MEXC_SPOT_WS_URL}`);
         try {
-            this.ws = new WS(MEXC_SPOT_WS_URL);
+            this.ws = new ws_1.default(MEXC_SPOT_WS_URL);
             if (!this.ws) {
                 throw new Error('Falha ao criar WebSocket');
             }

@@ -2,8 +2,8 @@ require('dotenv').config();
 
 import WebSocket from 'ws';
 import { createServer, IncomingMessage, Server } from 'http';
-import { GateioConnector } from './src/gateio-connector';
-import { MexcConnector } from './src/mexc-connector';
+import { GateIoConnector } from './scripts/connectors/gateio-connector';
+import { MexcConnector } from './scripts/connectors/mexc-connector';
 import { MarketPrices, ArbitrageOpportunity, PriceUpdate, CustomWebSocket } from './src/types';
 import { PrismaClient } from '@prisma/client';
 
@@ -53,6 +53,10 @@ function handlePriceUpdate(update: PriceUpdate) {
         bestAsk,
         bestBid
     });
+}
+
+function handleConnected() {
+  console.log(`[${new Date().toISOString()}] Conexão WebSocket estabelecida`);
 }
 
 function startWebSocketServer(httpServer: Server) {
@@ -377,37 +381,26 @@ async function startFeeds() {
         // Inicializar ambas as exchanges em paralelo
         console.log('[Feeds] ===== INICIANDO CONEXÕES PARALELAS =====');
         
-        const mexc = new MexcConnector();
-        const gateio = new GateioConnector();
+        const mexc = new MexcConnector('MEXC_FUTURES', handlePriceUpdate, handleConnected);
+        const gateio = new GateIoConnector('GATEIO_SPOT', handlePriceUpdate);
         
         // Configurar callbacks
-        mexc.onPriceUpdate((update) => {
-            handlePriceUpdate(update);
-        });
+        // mexc.onPriceUpdate((update) => {
+        //     handlePriceUpdate(update);
+        // });
         
-        gateio.onPriceUpdate((update) => {
-            handlePriceUpdate(update);
-        });
+        // gateio.onPriceUpdate((update) => {
+        //     handlePriceUpdate(update);
+        // });
         
         console.log('[Feeds] Callbacks configurados para ambas as exchanges');
         
         // Conectar em paralelo
         console.log('[Feeds] ===== CONECTANDO EXCHANGES =====');
         
-        const mexcPromise = mexc.connect().then(() => {
-            console.log('[MEXC] ✅ Conectado com sucesso!');
-        }).catch((error) => {
-            console.error('[MEXC] ❌ Erro na conexão:', error);
-        });
-        
-        const gateioPromise = gateio.connect().then(() => {
-            console.log('[GATEIO] ✅ Conectado com sucesso!');
-        }).catch((error) => {
-            console.error('[GATEIO] ❌ Erro na conexão:', error);
-        });
-        
-        // Aguardar ambas as conexões (não falhar se uma falhar)
-        await Promise.allSettled([mexcPromise, gateioPromise]);
+        mexc.connect();
+        const tradablePairs = await gateio.getTradablePairs();
+        gateio.connect(tradablePairs);
         
         console.log('[Feeds] ===== INICIANDO MONITORAMENTO =====');
         console.log('[Feeds] Iniciando detecção de arbitragem...');

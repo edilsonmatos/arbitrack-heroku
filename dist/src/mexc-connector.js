@@ -61,7 +61,7 @@ class MexcConnector {
                 setTimeout(() => this.connect(), this.reconnectDelay);
             });
             this.ws.on('close', (code, reason) => {
-                console.log('Conexão MEXC fechada:', code, reason?.toString());
+                console.log('Conexão MEXC fechada:', code, reason === null || reason === void 0 ? void 0 : reason.toString());
                 this.cleanup();
                 this.reconnectAttempts++;
                 setTimeout(() => this.connect(), this.reconnectDelay);
@@ -114,7 +114,8 @@ class MexcConnector {
             clearInterval(this.pingInterval);
         }
         this.pingInterval = setInterval(() => {
-            if (this.ws?.readyState === ws_1.default.OPEN) {
+            var _a;
+            if (((_a = this.ws) === null || _a === void 0 ? void 0 : _a.readyState) === ws_1.default.OPEN) {
                 if (this.ws.isAlive === false) {
                     console.log('MEXC não respondeu ao ping anterior, reconectando...');
                     this.cleanup();
@@ -139,19 +140,18 @@ class MexcConnector {
         }
         console.log(`[MEXC SUB] Iniciando subscrições para ${this.symbols.length} símbolos`);
         this.symbols.forEach((symbol, index) => {
-            // Usar o símbolo EXATO da API (não converter formato)
+            var _a;
             const msg = {
                 "method": "sub.ticker",
                 "param": {
-                    "symbol": symbol // Usar símbolo exato da API
+                    "symbol": symbol
                 }
             };
             try {
-                // Log apenas os primeiros 5 e últimos 5 para não sobrecarregar
                 if (index < 5 || index >= this.symbols.length - 5) {
                     console.log(`[MEXC SUB] (${index + 1}/${this.symbols.length}) ${symbol}:`, JSON.stringify(msg));
                 }
-                this.ws?.send(JSON.stringify(msg));
+                (_a = this.ws) === null || _a === void 0 ? void 0 : _a.send(JSON.stringify(msg));
             }
             catch (error) {
                 console.error('Erro ao enviar subscrição para MEXC:', error);
@@ -160,29 +160,26 @@ class MexcConnector {
         console.log(`[MEXC SUB] ✅ Todas as ${this.symbols.length} subscrições enviadas!`);
     }
     handleMessage(data) {
+        var _a;
         try {
             const message = JSON.parse(data.toString());
-            // Responde ao ping do servidor
             if (message.method === "ping") {
                 const pongMsg = {
                     "method": "pong"
                 };
-                this.ws?.send(JSON.stringify(pongMsg));
+                (_a = this.ws) === null || _a === void 0 ? void 0 : _a.send(JSON.stringify(pongMsg));
                 console.log(`[MEXC] Respondeu ping do servidor`);
                 return;
             }
-            // Log de confirmação de subscrições
             if (message.id && message.result) {
                 console.log(`[MEXC] Subscrição confirmada - ID: ${message.id}, Result: ${message.result}`);
                 return;
             }
-            // Processa mensagens de ticker (formato correto)
             if (message.channel === "push.ticker" && message.data) {
                 const ticker = message.data;
                 const bestAsk = parseFloat(ticker.ask1);
                 const bestBid = parseFloat(ticker.bid1);
                 if (bestAsk && bestBid && this.priceUpdateCallback) {
-                    // Converter formato do símbolo: BTC_USDT -> BTC_USDT (manter formato padrão)
                     const symbol = ticker.symbol;
                     const update = {
                         identifier: 'mexc',
@@ -192,7 +189,6 @@ class MexcConnector {
                         bestAsk,
                         bestBid
                     };
-                    // Log apenas para pares prioritários para reduzir verbosidade
                     if (this.relevantPairs.includes(symbol)) {
                         console.log(`[MEXC PRICE] ${symbol}: Ask=${bestAsk}, Bid=${bestBid}`);
                     }
@@ -203,7 +199,6 @@ class MexcConnector {
                 }
             }
             else {
-                // Log de outros tipos de mensagem (apenas erros importantes)
                 if (message.channel && message.channel.startsWith('rs.error')) {
                     console.log(`[MEXC ERROR] ${message.data}`);
                 }
@@ -211,7 +206,6 @@ class MexcConnector {
                     console.log(`[MEXC ERROR] Erro recebido:`, JSON.stringify(message.error));
                 }
                 else {
-                    // Log detalhado apenas para debug quando necessário
                     console.log(`[MEXC DEBUG] Mensagem não processada - Channel: ${message.channel || 'N/A'}, Method: ${message.method || 'N/A'}`);
                 }
             }
@@ -242,3 +236,4 @@ class MexcConnector {
     }
 }
 exports.MexcConnector = MexcConnector;
+//# sourceMappingURL=mexc-connector.js.map
