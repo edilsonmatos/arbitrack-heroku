@@ -1,0 +1,1 @@
+ALTER TABLE "Position" ADD COLUMN "isSimulated" BOOLEAN NOT NULL DEFAULT false; 
